@@ -24,4 +24,15 @@ public class PersonOneToOne extends PrimaryKeyEntity {
             fetch = FetchType.LAZY
     )
     private PhoneOneToOne phoneOneToOne;
+
+    public PersonOneToOne(String name) {
+        this.name = name;
+    }
+
+    public PersonOneToOne() {
+
+    }
+    public void update(String name){
+        this.name = name;
+    }
 }

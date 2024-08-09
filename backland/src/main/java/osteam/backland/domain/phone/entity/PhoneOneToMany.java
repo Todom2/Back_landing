@@ -13,10 +13,21 @@ public class PhoneOneToMany extends PrimaryKeyEntity {
 
     private String phone;
 
+    // 연관관계 주인
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "fk_person_id",
             referencedColumnName = "id"
     )
     private PersonOneToMany personOneToMany;
+    public PhoneOneToMany(PersonOneToMany personOneToMany, String phone) {
+        this.personOneToMany = personOneToMany;
+        this.phone = phone;
+    }
+    public PhoneOneToMany() {
+
+    }
+    public void setPerson(PersonOneToMany personOneToMany){
+        this.personOneToMany = personOneToMany;
+    }
 }

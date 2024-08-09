@@ -1,16 +1,14 @@
 package osteam.backland.domain.person.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import osteam.backland.domain.person.controller.request.PersonCreateRequest;
 import osteam.backland.domain.person.controller.response.PersonResponse;
+import osteam.backland.domain.person.entity.dto.PersonDTO;
 import osteam.backland.domain.person.service.PersonCreateService;
 import osteam.backland.domain.person.service.PersonSearchService;
-import osteam.backland.domain.person.service.PersonUpdateService;
 
 import java.util.List;
 
@@ -25,12 +23,11 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/person")
+@RequiredArgsConstructor
 public class PersonController {
 
-    private PersonCreateService personCreateService;
-    private PersonUpdateService personUpdateService;
-    private PersonSearchService personSearchService;
-
+    private final PersonCreateService personCreateService;
+    private final PersonSearchService personSearchService;
     /**
      * 등록 기능
      * personRequest를 service에 그대로 넘겨주지 말 것.
@@ -39,8 +36,11 @@ public class PersonController {
      * @return 성공 시 이름 반환
      */
     @PostMapping
-    public String person(PersonCreateRequest personCreateRequest) {
-        return personCreateRequest.getName();
+    public String person(@RequestBody PersonCreateRequest personCreateRequest) {
+        // 리퀘스트로부터 이름과 전화번호를 받아 서비스로 넘겨줌.
+        // 만약 중복된 전화번호라면 전화번호의 이름을 변경!
+        PersonDTO personDTO = new PersonDTO(personCreateRequest.getName(),personCreateRequest.getPhone());
+        return personCreateService.createAll(personDTO).getName();
     }
 
     /**
@@ -48,7 +48,10 @@ public class PersonController {
      */
     @GetMapping
     public ResponseEntity<List<PersonResponse>> getPeople() {
-        return null;
+        List<PersonResponse> persons = personSearchService.searchAll().stream()
+                .map(PersonDTO::toResponse)
+                .toList();
+        return ResponseEntity.ok(persons);
     }
 
     /**
@@ -57,8 +60,11 @@ public class PersonController {
      * @param name
      */
     @GetMapping("/name")
-    public ResponseEntity<List<PersonResponse>> getPeopleByName(String name) {
-        return null;
+    public ResponseEntity<List<PersonResponse>> getPeopleByName(@RequestParam(name = "name") String name){
+        List<PersonResponse> persons = personSearchService.searchPerson(name).stream()
+                .map(PersonDTO::toResponse)
+                .toList();
+        return ResponseEntity.ok(persons);
     }
 
     /**
@@ -67,7 +73,10 @@ public class PersonController {
      * @param phone
      */
     @GetMapping("/phone")
-    public ResponseEntity<List<PersonResponse>> getPeopleByPhone(String phone) {
-        return null;
+    public ResponseEntity<List<PersonResponse>> getPeopleByPhone(@RequestParam(name = "phone") String phone) {
+        List<PersonResponse> persons = personSearchService.searchPhone(phone).stream()
+                .map(PersonDTO::toResponse)
+                .toList();
+        return ResponseEntity.ok(persons);
     }
 }

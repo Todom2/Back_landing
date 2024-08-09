@@ -1,4 +1,4 @@
-package osteam.backland.domain.person.entity.dto;
+package osteam.backland.domain.phone.entity.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,17 +7,17 @@ import osteam.backland.domain.person.entity.PersonOnly;
 
 @Data
 @Builder(toBuilder = true)
-public class PersonDTO {
+public class PhoneDTO {
     private String name;
     private String phone;
 
-    public PersonDTO(String name, String phone) {
+    public PhoneDTO(String name, String phone) {
         this.name = name;
         this.phone = phone;
     }
 
-    public static PersonDTO from(PersonOnly personOnly){
-        return new PersonDTO(personOnly.getName(),personOnly.getPhone());
+    public static PhoneDTO from(PersonOnly personOnly){
+        return new PhoneDTO(personOnly.getName(),personOnly.getPhone());
     }
 
     public PersonResponse toResponse(){

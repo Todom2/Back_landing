@@ -2,7 +2,6 @@ package osteam.backland.global.entity;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.*;
-import org.hibernate.Hibernate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.SqlTypes;
