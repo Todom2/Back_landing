@@ -9,6 +9,10 @@ import osteam.backland.domain.person.controller.response.PersonResponse;
 import osteam.backland.domain.person.entity.dto.PersonDTO;
 import osteam.backland.domain.person.service.PersonCreateService;
 import osteam.backland.domain.person.service.PersonSearchService;
+import osteam.backland.domain.person.service.PersonUpdateService;
+import osteam.backland.domain.phone.entity.dto.PhoneDTO;
+import osteam.backland.global.Exception.model.CustomException;
+import osteam.backland.global.Exception.model.ErrorCode;
 
 import java.util.List;
 
@@ -25,7 +29,6 @@ import java.util.List;
 @RequestMapping("/person")
 @RequiredArgsConstructor
 public class PersonController {
-
     private final PersonCreateService personCreateService;
     private final PersonSearchService personSearchService;
     /**
@@ -36,7 +39,13 @@ public class PersonController {
      * @return 성공 시 이름 반환
      */
     @PostMapping
-    public String person(@RequestBody PersonCreateRequest personCreateRequest) {
+    public String person(@RequestBody(required = false) PersonCreateRequest personCreateRequest) {
+        if(personCreateRequest==null){
+            throw new CustomException(ErrorCode.OK,"Request 가 null 입니다.");
+        }
+        if(personCreateRequest.getName() == null || personCreateRequest.getPhone() == null){
+            throw new CustomException(ErrorCode.OK,"name,person 이 null 입니다.");
+        }
         // 리퀘스트로부터 이름과 전화번호를 받아 서비스로 넘겨줌.
         // 만약 중복된 전화번호라면 전화번호의 이름을 변경!
         PersonDTO personDTO = new PersonDTO(personCreateRequest.getName(),personCreateRequest.getPhone());
