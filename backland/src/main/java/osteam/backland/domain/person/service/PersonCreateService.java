@@ -15,6 +15,10 @@ import osteam.backland.domain.phone.entity.PhoneOneToMany;
 import osteam.backland.domain.phone.entity.PhoneOneToOne;
 import osteam.backland.domain.phone.repository.PhoneOneToManyRepository;
 import osteam.backland.domain.phone.repository.PhoneOneToOneRepository;
+import osteam.backland.domain.phone.service.PhoneCreateService;
+import osteam.backland.domain.phone.service.PhoneSearchService;
+import osteam.backland.global.Exception.model.CustomException;
+import osteam.backland.global.Exception.model.ErrorCode;
 
 import java.util.Optional;
 
@@ -26,13 +30,18 @@ public class PersonCreateService {
     //  아마 컨트롤러에서 Create 와 Update 를 분기해야할것 같다.
     private final PersonOnlyRepository personOnlyRepository;
     private final PersonOneToOneRepository personOneToOneRepository;
-    private final PhoneOneToOneRepository phoneOneToOneRepository;
     private final PersonOneToManyRepository personOneToManyRepository;
     private final PhoneOneToManyRepository phoneOneToManyRepository;
     private final PersonUpdateService personUpdateService;
 
+    private final PhoneCreateService phoneCreateService;
+    private final PhoneSearchService phoneSearchService;
+
     @Transactional
     public PersonDTO createAll(PersonDTO personDTO) {
+        if(personDTO.getName().isBlank() || personDTO.getPhone().isBlank()){
+            throw new CustomException(ErrorCode.OK,"name,person 이 null 입니다.");
+        }
         oneToMany(personDTO);
         oneToOne(personDTO);
         one(personDTO);
@@ -44,7 +53,7 @@ public class PersonCreateService {
      */
     @Transactional
     public PersonDTO oneToOne(PersonDTO personDTO) {
-        Optional<PhoneOneToOne> phoneOneToOne = phoneOneToOneRepository.findByPhone(personDTO.getPhone());
+        Optional<PhoneOneToOne> phoneOneToOne = phoneSearchService.findPhoneOTO(personDTO);
         //1. if already has phone number
         if(phoneOneToOne.isPresent()){
             return personUpdateService.updateOTO(personDTO, phoneOneToOne.get());
@@ -53,12 +62,10 @@ public class PersonCreateService {
         else{
             // 2-1. create new person, phone
             PersonOneToOne newPersonOTO = new PersonOneToOne(personDTO.getName());
-            PhoneOneToOne newPhoneOTO = new PhoneOneToOne(personDTO.getPhone());
             // 2-2. save person
             personOneToOneRepository.save(newPersonOTO);
-            newPhoneOTO.setPerson(newPersonOTO);
             // 2-3. save phone
-            phoneOneToOneRepository.save(newPhoneOTO);
+            PhoneOneToOne newPhoneOTO = phoneCreateService.createOTO(personDTO, newPersonOTO);
             // 2-4. Entity -> DTO
             return new PersonDTO(newPersonOTO.getName(),newPhoneOTO.getPhone());
         }
@@ -70,7 +77,7 @@ public class PersonCreateService {
     // 추가 - 동일한 폰 번호가 들어올 때, 사람 이름 수정하는 로직(Update)추가
     @Transactional
     public PersonDTO oneToMany(PersonDTO personDTO) {
-        Optional<PhoneOneToMany> phoneOneToMany = phoneOneToManyRepository.findByPhone(personDTO.getPhone());
+        Optional<PhoneOneToMany> phoneOneToMany = phoneSearchService.findPhoneOTM(personDTO);
         //1. if already has phone number
         if(phoneOneToMany.isPresent()){
             return personUpdateService.updateOTM(personDTO,phoneOneToMany.get());
@@ -78,8 +85,10 @@ public class PersonCreateService {
         else{
             PersonOneToMany personOTM = new PersonOneToMany(personDTO.getName());
             personOneToManyRepository.save(personOTM);
-            personOTM.addPhone(personDTO.getPhone());
-            return new PersonDTO(personOTM.getName(),personDTO.getPhone());
+
+            PhoneOneToMany phoneOTM = phoneCreateService.createOTM(personDTO,personOTM);
+
+            return new PersonDTO(personOTM.getName(),phoneOTM.getPhone());
         }
     }
 
